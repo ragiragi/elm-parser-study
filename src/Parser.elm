@@ -1,8 +1,3 @@
-{-
-   Elm Functional Parser Study
--}
-
-
 module Parser exposing (..)
 
 -- TYPES
