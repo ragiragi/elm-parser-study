@@ -66,3 +66,39 @@ return v inp =
 parse : Parser a -> String -> List ( a, String )
 parse p inp =
     p inp
+
+
+{-| Sequence two parsers
+-}
+andThen : (a -> Parser b) -> Parser a -> Parser b
+andThen fn p =
+    \inp ->
+        case (parse p inp) of
+            [] ->
+                []
+
+            ( a, inp ) :: _ ->
+                parse (fn a) inp
+
+
+{-| infix version of andThen
+-}
+(>>=) : Parser a -> (a -> Parser b) -> Parser b
+(>>=) p fn =
+    p |> andThen fn
+
+
+{-| Sequence multiple parsers and return results
+-}
+do : List (Parser a) -> Parser (List a)
+do ps =
+    let
+        loop parsers acc =
+            case parsers of
+                [] ->
+                    return (List.reverse acc)
+
+                p :: rest ->
+                    p >>= (\a -> loop rest (a :: acc))
+    in
+        loop ps []
