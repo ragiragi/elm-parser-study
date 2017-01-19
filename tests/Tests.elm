@@ -81,6 +81,119 @@ all =
                             (parse p1 "abcdef")
                             [ ( ( 'a', 'c' ), "def" ) ]
             ]
+        , describe "sat"
+            [ test "return a char if it is satisfied" <|
+                \() ->
+                    let
+                        p1 =
+                            sat (Char.isUpper)
+                    in
+                        Expect.equal (parse p1 "Hello") [ ( 'H', "ello" ) ]
+            , test "be failed it it is not" <|
+                \() ->
+                    Expect.equal (parse (sat Char.isUpper) "hello") []
+            ]
+        , describe "digit"
+            [ test "get a digit char" <|
+                \() ->
+                    Expect.equal (parse digit "123") [ ( '1', "23" ) ]
+            , test "fail if char is not a digit" <|
+                \() ->
+                    Expect.equal (parse digit "a23") []
+            ]
+        , describe "char"
+            [ test "get a 'a' char" <|
+                \() ->
+                    Expect.equal (parse (char 'a') "abc") [ ( 'a', "bc" ) ]
+            , test "fail if char is not match" <|
+                \() ->
+                    Expect.equal (parse (char 'Z') "abc") []
+            ]
+        , describe "many"
+            [ test "try to get digit, returns empty list" <|
+                \() ->
+                    Expect.equal
+                        (parse (many digit) "abc")
+                        [ ( [], "abc" ) ]
+            , test "get many digits" <|
+                \() ->
+                    Expect.equal
+                        (parse (many digit) "12abc")
+                        [ ( [ '1', '2' ], "abc" ) ]
+            ]
+        , describe "many1"
+            [ test "get one or more digit" <|
+                \() ->
+                    Expect.equal
+                        (parse (many1 digit) "12abc")
+                        [ ( [ '1', '2' ], "abc" ) ]
+            , test "fail if there is no digit" <|
+                \() ->
+                    Expect.equal
+                        (parse (many1 digit) "abc")
+                        []
+            ]
+        , describe "string"
+            [ test "match a string" <|
+                \() ->
+                    Expect.equal (parse (string "abc") "abcdef")
+                        [ ( "abc", "def" ) ]
+            , test "fail if not match" <|
+                \() ->
+                    Expect.equal (parse (string "abc") "Hello") []
+            ]
+        , describe "ident"
+            [ test "match a identifier" <|
+                \() ->
+                    Expect.equal (parse ident "foo1") [ ( "foo1", "" ) ]
+            ]
+        , describe "nat"
+            [ test "match a natural number" <|
+                \() -> Expect.equal (parse nat "345+") [ ( 345, "+" ) ]
+            ]
+        , describe "space"
+            [ test "match leading spaces" <|
+                \() -> Expect.equal (parse space "   hi") [ ( (), "hi" ) ]
+            ]
+        , describe "token parser"
+            [ test "number token parser" <|
+                \() -> Expect.equal (parse (token nat) "  123 +") [ ( 123, "+" ) ]
+            , test "symbol parser" <|
+                \() ->
+                    Expect.equal
+                        (parse (symbol "if") "if True then")
+                        [ ( "if", "True then" ) ]
+            ]
+        , describe "example digit list parser"
+            [ test "match [ 1,2 , 3, 4 ]" <|
+                \() ->
+                    Expect.equal (parse exP "[ 1,2 , 3, 4 ]") [ ( "1234", "" ) ]
+            , test "missing closing bracket" <|
+                \() ->
+                    Expect.equal (parse exP "[1,2,3,4") []
+            ]
+        , describe "parsing artithmatic expression"
+            [ describe "factor"
+                [ test "number with bracket" <|
+                    \() -> Expect.equal (parse factor "(123)") [ ( 123, "" ) ]
+                , test "just number" <|
+                    \() -> Expect.equal (parse factor "123") [ ( 123, "" ) ]
+                ]
+            , describe "term"
+                [ test "multiply two number" <|
+                    \() -> Expect.equal (parse term "5 * 3") [ ( 15, "" ) ]
+                ]
+            , describe "expr"
+                [ test "add two number" <|
+                    \() -> Expect.equal (parse expr "5 + 3") [ ( 8, "" ) ]
+                ]
+            , test "2 * 3 + 4" <|
+                \() -> Expect.equal (parse expr "2 * 3 + 4") [ ( 10, "" ) ]
+            , test "2 + 3 * 4" <|
+                \() -> Expect.equal (parse expr "2 + 3 * 4") [ ( 14, "" ) ]
+              -- , test "2 * (3 + 4)" <|
+              --     \() -> Expect.equal (parse expr "2 * (3) + 4") [ ( 10, "" ) ]
+            ]
         ]
 
 
