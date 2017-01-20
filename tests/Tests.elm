@@ -175,24 +175,24 @@ all =
         , describe "parsing artithmatic expression"
             [ describe "factor"
                 [ test "number with bracket" <|
-                    \() -> Expect.equal (parse factor "(123)") [ ( 123, "" ) ]
+                    \() -> Expect.equal (app factor "(123)") [ ( 123, "" ) ]
                 , test "just number" <|
-                    \() -> Expect.equal (parse factor "123") [ ( 123, "" ) ]
+                    \() -> Expect.equal (app factor "123") [ ( 123, "" ) ]
                 ]
             , describe "term"
                 [ test "multiply two number" <|
-                    \() -> Expect.equal (parse term "5 * 3") [ ( 15, "" ) ]
+                    \() -> Expect.equal (app term "5 * 3") [ ( 15, "" ) ]
                 ]
             , describe "expr"
                 [ test "add two number" <|
-                    \() -> Expect.equal (parse expr "5 + 3") [ ( 8, "" ) ]
+                    \() -> Expect.equal (app expr "5 + 3") [ ( 8, "" ) ]
                 ]
             , test "2 * 3 + 4" <|
-                \() -> Expect.equal (parse expr "2 * 3 + 4") [ ( 10, "" ) ]
+                \() -> Expect.equal (app expr "2 * 3 + 4") [ ( 10, "" ) ]
             , test "2 + 3 * 4" <|
-                \() -> Expect.equal (parse expr "2 + 3 * 4") [ ( 14, "" ) ]
-              -- , test "2 * (3 + 4)" <|
-              --     \() -> Expect.equal (parse expr "2 * (3) + 4") [ ( 10, "" ) ]
+                \() -> Expect.equal (app expr "2 + 3 * 4") [ ( 14, "" ) ]
+            , test "2 * (3 + 4)" <|
+                \() -> Expect.equal (app expr "2 * (3) + 4") [ ( 10, "" ) ]
             ]
         ]
 

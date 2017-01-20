@@ -1,17 +1,11 @@
 module Parser exposing (..)
 
 import String exposing (fromList, uncons, cons)
-
-
---import Lazy
-
+import Lazy
 import Char
 
 
 -- TYPES
---type P a
---    = P (Parser a)
---    | RecursiveParser (Lazy.Lazy (Parser a))
 
 
 type alias Parser a =
@@ -293,23 +287,89 @@ exP =
 -}
 
 
-factor : Parser Int
+type P a
+    = EagerParser (Parser a)
+    | LazyParser (Lazy.Lazy (Parser a))
+
+
+lazy : (() -> P a) -> P a
+lazy t =
+    LazyParser (Lazy.lazy (\() -> app (t ())))
+
+
+app : P a -> String -> List ( a, String )
+app p =
+    case p of
+        EagerParser p_ ->
+            p_
+
+        LazyParser t ->
+            Lazy.force t
+
+
+symbol_ str =
+    EagerParser (symbol str)
+
+
+return_ v =
+    EagerParser (return v)
+
+
+natural_ =
+    EagerParser natural
+
+
+(>>>=) : P a -> (a -> P b) -> P b
+(>>>=) p fn =
+    EagerParser <|
+        \inp ->
+            case (app p inp) of
+                [] ->
+                    []
+
+                ( a, restInp ) :: _ ->
+                    app (fn a) restInp
+
+
+(++++) : P a -> P a -> P a
+(++++) p q =
+    EagerParser <|
+        \inp ->
+            let
+                resP =
+                    app p inp
+            in
+                case resP of
+                    [] ->
+                        app q inp
+
+                    _ ->
+                        resP
+
+
+factor : P Int
 factor =
-    (symbol "(" >>= \_ -> natural >>= \e -> symbol ")" >>= \_ -> return e)
-        +++ natural
+    (symbol_ "(" >>>= \_ -> expr >>>= \e -> symbol_ ")" >>>= \_ -> return_ e)
+        ++++ natural_
 
 
-term : Parser Int
+term : P Int
 term =
-    factor
-        >>= \f ->
-                (symbol "*" >>= \_ -> term >>= \t -> return (f * t))
-                    +++ return f
+    lazy <|
+        \() ->
+            factor
+                >>>=
+                    \f ->
+                        (symbol_ "*" >>>= \_ -> term >>>= \t -> return_ (f * t))
+                            ++++ return_ f
 
 
-expr : Parser Int
+expr : P Int
 expr =
-    term
-        >>= \t ->
-                (symbol "+" >>= \_ -> expr >>= \e -> return (t + e))
-                    +++ return t
+    lazy <|
+        \() ->
+            term
+                >>>=
+                    \t ->
+                        (symbol_ "+" >>>= \_ -> expr >>>= \e -> return_ (t + e))
+                            ++++ return_ t
