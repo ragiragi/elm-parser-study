@@ -1,5 +1,8 @@
 module Parser exposing (..)
 
+{-| functional parser study with elm-lang
+-}
+
 import String exposing (fromList, uncons, cons)
 import Lazy
 import Char
@@ -285,6 +288,13 @@ exP =
    factor ::= (expr) | nat
    nat ::= 0 | 1 | 2 | ...
 -}
+{-
+   elm 은 haskell 과 다르게 lazy evalutation 을 언어 차원에서 지원하지 않기 때문에
+   elm-lang/lazy 를 이용하여 lazy evalutation 을 구현해주어야 한다.
+
+   위의 구현 내용들은 제외하고 실제 recursion 이 필요한 아래 산술 연산 예제만
+   lazy eval 을 사용하도록 구현하였다.
+-}
 
 
 type P a
@@ -294,11 +304,11 @@ type P a
 
 lazy : (() -> P a) -> P a
 lazy t =
-    LazyParser (Lazy.lazy (\() -> app (t ())))
+    LazyParser (Lazy.lazy (\() -> parse_ (t ())))
 
 
-app : P a -> String -> List ( a, String )
-app p =
+parse_ : P a -> String -> List ( a, String )
+parse_ p =
     case p of
         EagerParser p_ ->
             p_
@@ -307,41 +317,48 @@ app p =
             Lazy.force t
 
 
+symbol_ : String -> P String
 symbol_ str =
     EagerParser (symbol str)
 
 
+return_ : a -> P a
 return_ v =
     EagerParser (return v)
 
 
+natural_ : P Int
 natural_ =
     EagerParser natural
 
 
+{-| lazy version >>=
+-}
 (>>>=) : P a -> (a -> P b) -> P b
 (>>>=) p fn =
     EagerParser <|
         \inp ->
-            case (app p inp) of
+            case (parse_ p inp) of
                 [] ->
                     []
 
                 ( a, restInp ) :: _ ->
-                    app (fn a) restInp
+                    parse_ (fn a) restInp
 
 
+{-| lazy version +++
+-}
 (++++) : P a -> P a -> P a
 (++++) p q =
     EagerParser <|
         \inp ->
             let
                 resP =
-                    app p inp
+                    parse_ p inp
             in
                 case resP of
                     [] ->
-                        app q inp
+                        parse_ q inp
 
                     _ ->
                         resP

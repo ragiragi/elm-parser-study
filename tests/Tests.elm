@@ -4,7 +4,7 @@ import Test exposing (..)
 import Parser exposing (..)
 import Char
 import Expect
-import ArithmaticExpressionParser as AEP
+import CombineParser as CP
 
 
 --import Fuzz exposing (list, int, tuple, string)
@@ -176,30 +176,30 @@ all =
         , describe "parsing artithmatic expression"
             [ describe "factor"
                 [ test "number with bracket" <|
-                    \() -> Expect.equal (app factor "(123)") [ ( 123, "" ) ]
+                    \() -> Expect.equal (parse_ factor "(123)") [ ( 123, "" ) ]
                 , test "just number" <|
-                    \() -> Expect.equal (app factor "123") [ ( 123, "" ) ]
+                    \() -> Expect.equal (parse_ factor "123") [ ( 123, "" ) ]
                 ]
             , describe "term"
                 [ test "multiply two number" <|
-                    \() -> Expect.equal (app term "5 * 3") [ ( 15, "" ) ]
+                    \() -> Expect.equal (parse_ term "5 * 3") [ ( 15, "" ) ]
                 ]
             , describe "expr"
                 [ test "add two number" <|
-                    \() -> Expect.equal (app expr "5 + 3") [ ( 8, "" ) ]
+                    \() -> Expect.equal (parse_ expr "5 + 3") [ ( 8, "" ) ]
                 ]
             , test "2 * 3 + 4" <|
-                \() -> Expect.equal (app expr "2 * 3 + 4") [ ( 10, "" ) ]
+                \() -> Expect.equal (parse_ expr "2 * 3 + 4") [ ( 10, "" ) ]
             , test "2 + 3 * 4" <|
-                \() -> Expect.equal (app expr "2 + 3 * 4") [ ( 14, "" ) ]
+                \() -> Expect.equal (parse_ expr "2 + 3 * 4") [ ( 14, "" ) ]
             , test "2 * (3 + 4)" <|
-                \() -> Expect.equal (app expr "(2 + 3) * 4") [ ( 20, "" ) ]
+                \() -> Expect.equal (parse_ expr "(2 + 3) * 4") [ ( 20, "" ) ]
             ]
         , describe "arithmatic expression parser with elm-combine"
             [ test "2 + 3 * 4" <|
-                \() -> Expect.equal (AEP.eval "2 + 3 * 4") "2 + 3 * 4 = 14"
+                \() -> Expect.equal (CP.eval "2 + 3 * 4") "2 + 3 * 4 = 14"
             , test "(2 + 3) * 4" <|
-                \() -> Expect.equal (AEP.eval "(2 + 3) * 4") "(2 + 3) * 4 = 20"
+                \() -> Expect.equal (CP.eval "(2 + 3) * 4") "(2 + 3) * 4 = 20"
             ]
         ]
 
