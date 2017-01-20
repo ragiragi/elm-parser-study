@@ -4,6 +4,7 @@ import Test exposing (..)
 import Parser exposing (..)
 import Char
 import Expect
+import ArithmaticExpressionParser as AEP
 
 
 --import Fuzz exposing (list, int, tuple, string)
@@ -192,7 +193,13 @@ all =
             , test "2 + 3 * 4" <|
                 \() -> Expect.equal (app expr "2 + 3 * 4") [ ( 14, "" ) ]
             , test "2 * (3 + 4)" <|
-                \() -> Expect.equal (app expr "2 * (3) + 4") [ ( 10, "" ) ]
+                \() -> Expect.equal (app expr "(2 + 3) * 4") [ ( 20, "" ) ]
+            ]
+        , describe "arithmatic expression parser with elm-combine"
+            [ test "2 + 3 * 4" <|
+                \() -> Expect.equal (AEP.eval "2 + 3 * 4") "2 + 3 * 4 = 14"
+            , test "(2 + 3) * 4" <|
+                \() -> Expect.equal (AEP.eval "(2 + 3) * 4") "(2 + 3) * 4 = 20"
             ]
         ]
 
